@@ -21,7 +21,7 @@ This is a simple **Sudoku game** built using **Python** with a graphical interfa
 4. Run the app:
 
 ```bash
-python gui.py
+python sudoku.py
 ```
 ## How to Use
 
