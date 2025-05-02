@@ -1,7 +1,10 @@
 from tkinter import *
 import utils as utils
 
+
 entries = []
+sudoku_puzzle = []
+solved_puzzle = []
 
 def initiate_gui():
     main_window = Tk()
@@ -15,25 +18,21 @@ def initiate_gui():
 
     generate_grid(grid_frame)
 
-    button = Button(main_window, text="New Game", width=10, command=lambda: generate_grid(grid_frame))
-    button.place(relx=0.35, rely=0.8, anchor="center")
+    button = Button(main_window, text="New Game", width=10, command=lambda: load_new_game())
+    button.place(relx=0.4, rely=0.8, anchor="center")
     button = Button(main_window, text="Check", width=10)
-    button.place(relx=0.65, rely=0.8, anchor="center", command= check_puzzle)
-
+    button.place(relx=0.6, rely=0.8, anchor="center")
+    button.configure(command=check_puzzle)
 
     main_window.mainloop()
 
 def generate_grid(frame):
-    global entries
-
-    # Clear previous widgets if they exist
-    for row in entries:
-        for entry in row:
-            entry.destroy()
-    entries.clear()
+    global entries, sudoku_puzzle, solved_puzzle
 
     try:
-        sudoku = utils.load_random_puzzle("puzzles")
+        sudoku_puzzle = utils.load_random_puzzle("puzzles")
+        solved_puzzle = utils.get_solution(sudoku_puzzle)
+        print(solved_puzzle)
     except Exception as e:
         print("Failed to load puzzle:", e)
         return
@@ -55,8 +54,8 @@ def generate_grid(frame):
 
             entry.grid(row=i, column=j, padx=(padx, 0), pady=(pady, 0))
 
-            if sudoku[i][j] != 0:
-                entry.insert(0, sudoku[i][j])
+            if sudoku_puzzle[i][j] != 0:
+                entry.insert(0, sudoku_puzzle[i][j])
                 entry.config(state='disabled', disabledforeground='black')
             # Add the Entry widget to the row
             row.append(entry)
@@ -64,5 +63,63 @@ def generate_grid(frame):
             # After finishing the row, append the row to the main list
         entries.append(row)
 
+def load_new_game():
+    global entries, sudoku_puzzle, solved_puzzle
+
+    try:
+        sudoku_puzzle = utils.load_random_puzzle("puzzles")
+        solved_puzzle = utils.get_solution(sudoku_puzzle)
+        print(solved_puzzle)
+    except Exception as e:
+        print("Failed to load puzzle:", e)
+        return None, None
+
+    for i in range(9):
+        for j in range(9):
+            entry = entries[i][j]
+            entry.config(state='normal')
+            entry.delete(0, END)
+
+            if sudoku_puzzle[i][j] != 0:
+                entry.insert(0, sudoku_puzzle[i][j])
+                entry.config(state='disabled', disabledforeground='black')
+            else:
+                entry.config(bg='white')  # Reset background
+    return sudoku_puzzle, solved_puzzle
+
 def check_puzzle():
-    global entries
+    board = get_user_board(entries)  # user's answers
+    correct = True
+
+    for i in range(9):
+        for j in range(9):
+            entry_val = board[i][j]
+            correct_val = solved_puzzle[i][j]
+
+            if entry_val == correct_val:
+                entries[i][j].configure(bg='lightgreen')
+            else:
+                if entries[i][j]['state'] != 'disabled':  # don't color original clues
+                    entries[i][j].configure(bg='lightcoral')
+                correct = False
+
+    return correct
+
+def is_valid_group(group):
+    return sorted(group) == list(range(1, 10))
+
+def get_user_board(entries):
+    board = []
+    for i in range(9):
+        row = []
+        for j in range(9):
+            value = entries[i][j].get()
+            try:
+                num = int(value)
+            except ValueError:
+                num = 0
+            row.append(num)
+        board.append(row)
+    return board
+
+

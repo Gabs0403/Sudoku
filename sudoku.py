@@ -1,13 +1,11 @@
-import gui as gui
+from gui import initiate_gui
+
 
 def main():
-    gui.initiate_gui()
+    initiate_gui()
 
-
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
 
 
